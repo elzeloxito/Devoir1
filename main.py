@@ -1,1 +1,3 @@
 print('Pizza !')
+
+print('Pasta')
