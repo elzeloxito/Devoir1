@@ -102,32 +102,25 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
     from util import Stack
 
     state = problem.getStartState()
-    print(state)
     fringe = Stack()
     fringe.push([state,[],''])
-    visited_states = []
-    parents=[]
+    parents=dict()
     while not fringe.isEmpty(): 
         state = fringe.pop()
-        visited_states.append(state[0])
-        parents.append([state[1], state[2]])
+        parents[state[0]] = (state[1],state[2])
         if problem.isGoalState(state[0]):
+            final_state = state[0]
             break 
         else:
             for successor_state in problem.getSuccessors(state[0]):
-                if successor_state[0] not in visited_states: 
-                    fringe.push([successor_state[0],state[0],successor_state[1]]) #on met dans la fringe l'etat successeur, son parent et la direction de son parent a luis
-    
-    directions=[]
-    idx=len(visited_states)-1
-    directions.insert(0, parents[idx][1])
-    while visited_states[idx] != problem.getStartState():
-        for i,visited_state in enumerate(visited_states):
-            if visited_state == parents[idx][0]:
-                idx =  i
-                if parents[idx][1] != '':
-                    directions.insert(0, parents[idx][1])
-                break 
+                if successor_state[0] not in parents:
+                    fringe.push([successor_state[0],state[0],successor_state[1]])
+
+    directions = []
+    path_state = final_state
+    while path_state != problem.getStartState():
+        directions.insert(0,parents[path_state][1])
+        path_state = parents[path_state][0]
     return directions
 
     util.raiseNotDefined()
@@ -140,6 +133,30 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
+    from util import Queue
+
+    state = problem.getStartState()
+    fringe = Queue()
+    fringe.push([state,[],''])
+    parents=dict()
+    while not fringe.isEmpty(): 
+        state = fringe.pop()
+        parents[state[0]] = (state[1],state[2])
+        if problem.isGoalState(state[0]):
+            final_state = state[0]
+            break 
+        else:
+            for successor_state in problem.getSuccessors(state[0]):
+                if successor_state[0] not in parents:
+                    fringe.push([successor_state[0],state[0],successor_state[1]])
+
+    directions = []
+    path_state = final_state
+    while path_state != problem.getStartState():
+        directions.insert(0,parents[path_state][1])
+        path_state = parents[path_state][0]
+    return directions
+
 
     util.raiseNotDefined()
 
