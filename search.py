@@ -101,10 +101,11 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
     '''
     from util import Stack
 
-    state = problem.getStartState()
+    initial_state = problem.getStartState()
     fringe = Stack()
-    fringe.push([state,[],''])
+    fringe.push([initial_state,[],''])
     parents=dict()
+    final_state = None
     while not fringe.isEmpty(): 
         state = fringe.pop()
         parents[state[0]] = (state[1],state[2])
@@ -116,29 +117,30 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
                 if successor_state[0] not in parents:
                     fringe.push([successor_state[0],state[0],successor_state[1]])
 
+    if final_state == None:
+        return[]
+
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
         directions.insert(0,parents[path_state][1])
         path_state = parents[path_state][0]
     return directions
-
     util.raiseNotDefined()
-
 
 def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     """Search the shallowest nodes in the search tree first."""
-
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
     from util import Queue
 
-    state = problem.getStartState()
+    initial_state = problem.getStartState()
     fringe = Queue()
-    fringe.push([state,[],''])
+    fringe.push([initial_state,[],''])
     parents=dict()
+    final_state = None
     while not fringe.isEmpty(): 
         state = fringe.pop()
         parents[state[0]] = (state[1],state[2])
@@ -150,6 +152,48 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
                 if successor_state[0] not in parents:
                     fringe.push([successor_state[0],state[0],successor_state[1]])
 
+    if final_state == None:
+        return []
+
+    directions = []
+    path_state = final_state
+    while path_state != problem.getStartState():
+        directions.insert(0,parents[path_state][1])
+        path_state = parents[path_state][0]
+    return directions
+    util.raiseNotDefined()
+
+
+def uniformCostSearch(problem:SearchProblem)->List[Direction]:
+    """Search the node of least total cost first."""
+
+    '''
+        INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
+    '''
+    from util import PriorityQueue
+
+    initial_state = {problem.getStartState(): [[], "", 0]}
+    fringe = PriorityQueue()
+    fringe.push(initial_state, 0)
+    parents = dict()
+    final_state = None
+    while not fringe.isEmpty():
+        infos = fringe.pop()
+        state, relation = next(iter(infos.items()))
+        parents[state] = [relation[0], relation[1]]
+        if problem.isGoalState(state):
+            final_state = state
+            break 
+        else:
+            for successor_state in problem.getSuccessors(state):
+                if successor_state[0] not in parents:
+                    print(successor_state)
+                    added_state={successor_state[0] : (state, successor_state[1], relation[2] + successor_state[2])}
+                    fringe.update(added_state, relation[2] + successor_state[2]) 
+    
+    if final_state == None:
+        return []
+
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
@@ -157,18 +201,8 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
         path_state = parents[path_state][0]
     return directions
 
-
     util.raiseNotDefined()
 
-def uniformCostSearch(problem:SearchProblem)->List[Direction]:
-    """Search the node of least total cost first."""
-
-
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
-    '''
-
-    util.raiseNotDefined()
 
 def nullHeuristic(state:GameState, problem:SearchProblem=None)->List[Direction]:
     """
