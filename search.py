@@ -104,17 +104,17 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
     initial_state = problem.getStartState()
     fringe = Stack()
     fringe.push([initial_state,[],''])
-    parents=dict()
+    visited_states=dict()
     final_state = None
     while not fringe.isEmpty(): 
         state = fringe.pop()
-        parents[state[0]] = (state[1],state[2])
+        visited_states[state[0]]=(state[1],state[2])
         if problem.isGoalState(state[0]):
             final_state = state[0]
             break 
         else:
             for successor_state in problem.getSuccessors(state[0]):
-                if successor_state[0] not in parents:
+                if successor_state[0] not in visited_states:
                     fringe.push([successor_state[0],state[0],successor_state[1]])
 
     if final_state == None:
@@ -123,8 +123,8 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
-        directions.insert(0,parents[path_state][1])
-        path_state = parents[path_state][0]
+        directions.insert(0,visited_states[path_state][1])
+        path_state = visited_states[path_state][0]
     return directions
     util.raiseNotDefined()
 
@@ -139,18 +139,18 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     initial_state = problem.getStartState()
     fringe = Queue()
     fringe.push([initial_state,[],''])
-    parents=dict()
+    visited_states={initial_state: [[],""]}
     final_state = None
     while not fringe.isEmpty(): 
         state = fringe.pop()
-        parents[state[0]] = (state[1],state[2])
         if problem.isGoalState(state[0]):
             final_state = state[0]
             break 
         else:
             for successor_state in problem.getSuccessors(state[0]):
-                if successor_state[0] not in parents:
+                if successor_state[0] not in visited_states:
                     fringe.push([successor_state[0],state[0],successor_state[1]])
+                    visited_states[successor_state[0]]=(state[0],successor_state[1])
 
     if final_state == None:
         return []
@@ -158,8 +158,8 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
-        directions.insert(0,parents[path_state][1])
-        path_state = parents[path_state][0]
+        directions.insert(0,visited_states[path_state][1])
+        path_state = visited_states[path_state][0]
     return directions
     util.raiseNotDefined()
 
@@ -172,24 +172,25 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     '''
     from util import PriorityQueue
 
-    initial_state = {problem.getStartState(): [[], "", 0]}
+    initial_state = problem.getStartState()
     fringe = PriorityQueue()
     fringe.push(initial_state, 0)
-    parents = dict()
+    infos = {initial_state: [[], "", 0]}
     final_state = None
     while not fringe.isEmpty():
-        infos = fringe.pop()
-        state, relation = next(iter(infos.items()))
-        parents[state] = [relation[0], relation[1]]
+        state = fringe.pop()
+        cost = infos[state][2]
         if problem.isGoalState(state):
             final_state = state
             break 
         else:
             for successor_state in problem.getSuccessors(state):
-                if successor_state[0] not in parents:
-                    print(successor_state)
-                    added_state={successor_state[0] : (state, successor_state[1], relation[2] + successor_state[2])}
-                    fringe.update(added_state, relation[2] + successor_state[2]) 
+                if successor_state[0] not in infos:
+                    fringe.update(successor_state[0], successor_state[2] + cost) 
+                    infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
+                elif  successor_state[2] + cost < infos[successor_state[0]][2]:
+                    fringe.update(successor_state[0], successor_state[2] + cost) 
+                    infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
     
     if final_state == None:
         return []
@@ -197,8 +198,8 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
-        directions.insert(0,parents[path_state][1])
-        path_state = parents[path_state][0]
+        directions.insert(0,infos[path_state][1])
+        path_state = infos[path_state][0]
     return directions
 
     util.raiseNotDefined()
