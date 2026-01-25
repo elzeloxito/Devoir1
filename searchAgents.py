@@ -305,6 +305,12 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
+
+        corner_state = [False, False, False, False]
+        for i,corner in self.corners:
+            if self.startingPosition == corner:
+                corner_state[i] = True
+        return (self.startingPosition, tuple(corner_state))
         
         util.raiseNotDefined()
 
@@ -316,6 +322,11 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
+
+        for corner in self.corners:
+            if state[1] == (True, True, True, True): #quelque soit la position, si les etats des corners sont tous True alors c'est un etat final
+                return True
+        return False
 
         util.raiseNotDefined()
 
@@ -343,6 +354,16 @@ class CornersProblem(search.SearchProblem):
                 INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
             '''
 
+            x,y = state[0]
+            corners_state = list(state[1])
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                for i,corner in enumerate(self.corners):
+                    if corner == nextState:
+                        corners_state[i] = True #change l'etat des corners si jamais le successeur est un corner
+                successors.append(((nextState,tuple(corners_state)), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
