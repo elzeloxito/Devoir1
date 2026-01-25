@@ -353,7 +353,6 @@ class CornersProblem(search.SearchProblem):
             '''
                 INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
             '''
-
             x,y = state[0]
             corners_state = list(state[1])
             dx, dy = Actions.directionToVector(action)
@@ -363,7 +362,7 @@ class CornersProblem(search.SearchProblem):
                 for i,corner in enumerate(self.corners):
                     if corner == nextState:
                         corners_state[i] = True #change l'etat des corners si jamais le successeur est un corner
-                successors.append(((nextState,tuple(corners_state)), action, 1))
+                successors.append(((nextState,tuple(corners_state)), action, 1)) #tout en tuple pour le dictionnaire 
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
