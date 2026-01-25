@@ -170,6 +170,7 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
+    # A commenter
     from util import PriorityQueue
 
     initial_state = problem.getStartState()
