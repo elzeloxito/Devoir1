@@ -399,8 +399,83 @@ def cornersHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
+    # l'heuristique dépend de l'état des coins visités
+    # notre idée c'est de retourner la distance manhattan du point le plus près seulement 
+   
+    h = [0,0,0,0]
     
-    return 0
+    if state[1][0] == False:
+        h[0] += ( abs(state[0][0] - corners[0][0]) + abs(state[0][1] - corners[0][1])  )
+        
+    if state[1][1] == False:
+        h[1] += ( abs(state[0][0] - corners[1][0]) + abs(state[0][1] - corners[1][1])  )
+    
+    if state[1][2] == False:
+        h[2] += ( abs(state[0][0] - corners[2][0]) + abs(state[0][1] - corners[2][1])  )
+        
+    if state[1][3] == False:
+        h[3] += ( abs(state[0][0] - corners[3][0]) + abs(state[0][1] - corners[3][1])  )
+        
+    return max(h)
+
+def cornersHeuristic3(state, problem):
+    
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    '''
+        INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
+    '''
+    # l'heuristique dépend de l'état des coins visités
+    # notre idée c'est de retourner la distance manhattan totale 
+    
+    h = 0
+    k = 0
+    if state[1][0] == False:
+        h += ( abs(state[0][0] - corners[0][0]) + abs(state[0][1] - corners[0][1])  )
+        k+=1
+    if state[1][1] == False:
+        h += ( abs(state[0][0] - corners[1][0]) + abs(state[0][1] - corners[1][1])  )
+        k+=1
+    if state[1][2] == False:
+        h += ( abs(state[0][0] - corners[2][0]) + abs(state[0][1] - corners[2][1])  )
+        k+=1
+    if state[1][3] == False:
+        h += ( abs(state[0][0] - corners[3][0]) + abs(state[0][1] - corners[3][1])  )
+        k+=1
+    
+    return h/4 if k!=0 else 0
+
+def cornersHeuristic2(state, problem): #non consistante
+    """
+    A heuristic for the CornersProblem that you defined.
+
+      state:   The current search state
+               (a data structure you chose in your search problem)
+
+      problem: The CornersProblem instance for this layout.
+
+    This function should always return a number that is a lower bound on the
+    shortest path from the state to a goal of the problem; i.e.  it should be
+    admissible (as well as consistent).
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    # l'heuristique dépend de l'état des coins visités
+    # notre idée c'est de retourner la distance à vol d'oiseau de chaque point non visité 
+    
+    h = 0
+    if state[1][0] == False:
+        h += ( (state[0][0] - corners[0][0])**2 + (state[0][1] - corners[0][1]) **2 )**(0.5)
+    if state[1][1] == False:
+        h += ( (state[0][0] - corners[1][0])**2 + (state[0][1] - corners[1][1]) **2 )**(0.5)
+    if state[1][2] == False:
+        h += ( (state[0][0] - corners[2][0])**2 + (state[0][1] - corners[2][1]) **2 )**(0.5)
+    if state[1][3] == False:
+        h += ( (state[0][0] - corners[3][0])**2 + (state[0][1] - corners[3][1]) **2 )**(0.5)
+
+    return h
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
