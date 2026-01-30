@@ -568,11 +568,59 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+    position = list(position)
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
+    
+    # 1er test : heuristique qui prend le nombre de nourriture restant sur la map 
+    # Resultat : 12507 => 2/5
+    '''
+    if len(foodGrid.asList())!=1:
+        if not problem.isGoalState(state):
+            return len(foodGrid.asList())
+    else:
+        x_pos = position[0]
+        y_pos = position[1]
 
+        last_food = foodGrid.asList()
+        last_food = last_food[0]
 
+        x_last_food = last_food[0]
+        y_last_food = last_food[1]
+
+        return abs(x_pos - x_last_food)+abs(y_pos - y_last_food)
+    '''
+    # 2e test : heuristique renvoie la moyenne des distances de manhattan entre l'etat et toutes les nourritures restantes
+    # Resultat : 11254 => 3/5
+    '''
+    if len(foodGrid.asList())!=0:
+        food_remaining = foodGrid.asList()
+        number_items = len(food_remaining)
+        mean_distance = 0
+        x_pos = position[0]
+        y_pos = position[1]
+        for food_element in food_remaining:
+            x_food = food_element[0]
+            y_food = food_element[1]
+            mean_distance += abs(x_pos - x_food)+abs(y_pos - y_food)
+        mean_distance = 1/number_items*mean_distance
+        return mean_distance
+    '''
+
+    if len(foodGrid.asList())!=1:
+        food_remaining = foodGrid.asList()
+        min_distance = 0
+        x_pos = position[0]
+        y_pos = position[1]
+        for food_element in food_remaining:
+            x_food = food_element[0]
+            y_food = food_element[1]
+            temp = abs(x_pos - x_food)+abs(y_pos - y_food)
+            if temp > min_distance:
+                min_distance = temp
+        return min_distance
+    
     return 0
 
