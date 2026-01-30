@@ -380,7 +380,7 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-def cornersHeuristic(state, problem):
+def cornersHeuristicNotFinishedYet(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -400,7 +400,60 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
     # l'heuristique dépend de l'état des coins visités
-    # notre idée c'est de retourner la distance manhattan du point le plus près seulement 
+    # notre idée c'est de retourner la distance manhattan du point le plus près + la distance en ligne droite entre les points restants 
+    # Apparamment s'apparente à une solution MTS
+    idx_faux = [i for i, val in enumerate(state[1]) if not val]
+    pts_to_visit = sum(1 for val in state[1] if not val) #nombre de points à visiter et leur index
+
+
+    if pts_to_visit == 1: #distance de manhathan si un seul point à visiter
+        return ( abs(state[0][0] - corners[idx_faux[0]][0]) + abs(state[0][1] - corners[idx_faux[0]][1])  )
+    
+    h = [0,0,0,0]
+    if state[1][0] == False:
+        h[0] += ( abs(state[0][0] - corners[0][0]) + abs(state[0][1] - corners[0][1])  )
+
+    if state[1][1] == False:
+        h[1] += ( abs(state[0][0] - corners[1][0]) + abs(state[0][1] - corners[1][1])  )
+    
+    if state[1][2] == False:
+        h[2] += ( abs(state[0][0] - corners[2][0]) + abs(state[0][1] - corners[2][1])  )
+        
+    if state[1][3] == False:
+        h[3] += ( abs(state[0][0] - corners[3][0]) + abs(state[0][1] - corners[3][1])  )
+
+    if pts_to_visit == 2:
+        dist_ptn2ptn = ( abs(corners[idx_faux[0]][0] - corners[idx_faux[1]][0]) + abs(corners[idx_faux[0]][1] - corners[idx_faux[1]][1])  )
+        return (min(h[idx_faux[0]],h[idx_faux[1]]) + dist_ptn2ptn)
+    if pts_to_visit == 3:
+        dist_ptn2ptn = corners[3][0] + corners[3][1]  # largeur + hauteur
+        return (min(h[idx_faux[0]],h[idx_faux[1]],h[idx_faux[2]]) + dist_ptn2ptn)
+    if pts_to_visit == 4:
+        dist_ptn2ptn = corners[3][0] + corners[3][1] + min(corners[3][0],corners[3][1]) # largeur + hauteur + min(largeur,hauteur)
+        return (min(h) + dist_ptn2ptn)
+    return 0
+
+def cornersHeuristic4(state, problem):
+    """
+    A heuristic for the CornersProblem that you defined.
+
+      state:   The current search state
+               (a data structure you chose in your search problem)
+
+      problem: The CornersProblem instance for this layout.
+
+    This function should always return a number that is a lower bound on the
+    shortest path from the state to a goal of the problem; i.e.  it should be
+    admissible (as well as consistent).
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    '''
+        INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
+    '''
+    # l'heuristique dépend de l'état des coins visités
+    # notre idée c'est de retourner la distance manhattan du point le plus loin seulement 
    
     h = [0,0,0,0]
     
@@ -477,6 +530,44 @@ def cornersHeuristic2(state, problem): #non consistante
 
     return h
 
+def cornersHeuristic(state, problem):
+    """
+    A heuristic for the CornersProblem that you defined.
+
+      state:   The current search state
+               (a data structure you chose in your search problem)
+
+      problem: The CornersProblem instance for this layout.
+
+    This function should always return a number that is a lower bound on the
+    shortest path from the state to a goal of the problem; i.e.  it should be
+    admissible (as well as consistent).
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    '''
+        INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
+    '''
+    # l'heuristique dépend de l'état des coins visités
+    # notre idée c'est de retourner la distance manhattan du point le plus loin seulement 
+   
+    h = [0,0,0,0]
+    
+    if state[1][0] == False:
+        h[0] += ( abs(state[0][0] - corners[0][0]) + abs(state[0][1] - corners[0][1])  )
+        
+    if state[1][1] == False:
+        h[1] += ( abs(state[0][0] - corners[1][0]) + abs(state[0][1] - corners[1][1])  )
+    
+    if state[1][2] == False:
+        h[2] += ( abs(state[0][0] - corners[2][0]) + abs(state[0][1] - corners[2][1])  )
+        
+    if state[1][3] == False:
+        h[3] += ( abs(state[0][0] - corners[3][0]) + abs(state[0][1] - corners[3][1])  )
+        
+    return max(h)
+
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
     def __init__(self):
@@ -545,7 +636,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
 
     This heuristic must be consistent to ensure correctness.  First, try to come
     up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
+    consistent as well. # Je crois que c'est l'inverse mais ce n'est pas grave :)
 
     If using A* ever finds a solution that is worse uniform cost search finds,
     your heuristic is *not* consistent, and probably not admissible!  On the
