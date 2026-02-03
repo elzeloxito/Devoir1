@@ -380,7 +380,7 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-def cornersHeuristicNotFinishedYet(state, problem):
+def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -426,12 +426,15 @@ def cornersHeuristicNotFinishedYet(state, problem):
         dist_ptn2ptn = ( abs(corners[idx_faux[0]][0] - corners[idx_faux[1]][0]) + abs(corners[idx_faux[0]][1] - corners[idx_faux[1]][1])  )
         return (min(h[idx_faux[0]],h[idx_faux[1]]) + dist_ptn2ptn)
     if pts_to_visit == 3:
-        dist_ptn2ptn = corners[3][0] + corners[3][1]  # largeur + hauteur
+        dist_ptn2ptn = corners[3][0] + corners[3][1] -2 # largeur + hauteur
         return (min(h[idx_faux[0]],h[idx_faux[1]],h[idx_faux[2]]) + dist_ptn2ptn)
     if pts_to_visit == 4:
-        dist_ptn2ptn = corners[3][0] + corners[3][1] + min(corners[3][0],corners[3][1]) # largeur + hauteur + min(largeur,hauteur)
+        dist_ptn2ptn = corners[3][0] + corners[3][1] + min(corners[3][0],corners[3][1]) -3# largeur + hauteur + min(largeur,hauteur)
         return (min(h) + dist_ptn2ptn)
-    return 0
+    # La correction de la largeur/longueur avec -2 ou -3 est pour eviter de compter 2 fois la position
+    #  de départ si elle est en (1,1) rend l'heuristique consistante sinon c'est pas le cas!
+
+    return 0 # => in this one 774 nodes expanded
 
 def cornersHeuristic4(state, problem):
     """
@@ -530,7 +533,7 @@ def cornersHeuristic2(state, problem): #non consistante
 
     return h
 
-def cornersHeuristic(state, problem):
+def cornersHeuristicGood(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -549,7 +552,7 @@ def cornersHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
-    # l'heuristique dépend de l'état des coins visités
+    # l'heuristique dépend de l'état des coins visités 
     # notre idée c'est de retourner la distance manhattan du point le plus loin seulement 
    
     h = [0,0,0,0]
@@ -566,7 +569,7 @@ def cornersHeuristic(state, problem):
     if state[1][3] == False:
         h[3] += ( abs(state[0][0] - corners[3][0]) + abs(state[0][1] - corners[3][1])  )
         
-    return max(h)
+    return max(h)   # => in this one 1136 nodes expanded
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -699,8 +702,8 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         mean_distance = 1/number_items*mean_distance
         return mean_distance
     '''
-
-    if len(foodGrid.asList())!=1:
+    '''
+    if len(foodGrid.asList())!=1: #heuristique Theo
         food_remaining = foodGrid.asList()
         min_distance = 0
         x_pos = position[0]
@@ -712,6 +715,36 @@ def foodHeuristic(state, problem: FoodSearchProblem):
             if temp > min_distance:
                 min_distance = temp
         return min_distance
+    '''
+
+    #heuristique Axel  10908 nodes
+    # renvoie la distance au point de nourriture le plus proche + le nombre de nourriture restante (-1 pour le premie point déjà mangé)
+    '''
+    nb_Food = len(foodGrid.asList())
+    if nb_Food <=0:
+            return 0
+    else:
+        min_distance = min([util.manhattanDistance(position, food_pos) for food_pos in foodGrid.asList()])
+        return min_distance + nb_Food -1
+    '''    
+    #heuristique2 Axel => 8204 nodes expanded
+    # renvoie la distance au point de nourriture le plus proche 
+    # + la distance en x et y entre le point le plus proche et le plus loin
+    food_list = foodGrid.asList()
+    if not food_list:
+        dist2closest, max_dx, max_dy = None, None, None
+    else:
+        # Distance et indice du point le plus proche
+        dist2closest, index_closest = min(
+            (util.manhattanDistance(position, food_pos), i)
+            for i, food_pos in enumerate(food_list)
+        )
+        closest_pos = food_list[index_closest]
+        # Calcul des distances maximales en x et y par rapport au point le plus proche
+        max_dx = max(abs(food_pos[0] - closest_pos[0]) for food_pos in food_list)
+        max_dy = max(abs(food_pos[1] - closest_pos[1]) for food_pos in food_list)
     
+        return dist2closest + max_dx + max_dy
+
     return 0
 
