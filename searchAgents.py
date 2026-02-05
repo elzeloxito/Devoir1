@@ -726,7 +726,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     else:
         min_distance = min([util.manhattanDistance(position, food_pos) for food_pos in foodGrid.asList()])
         h1 = min_distance + nb_Food -1
-      
+    '''  
     #heuristique2 Axel => 8204 nodes expanded
     # renvoie la distance au point de nourriture le plus proche 
     # + la distance en x et y entre le point le plus proche et le plus loin
@@ -745,8 +745,8 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         max_dx = max(abs(food_pos[0] - closest_pos[0]) for food_pos in food_list)
         max_dy = max(abs(food_pos[1] - closest_pos[1]) for food_pos in food_list)
     
-        h2 = dist2closest + max_dx + max_dy    
-    
+        return dist2closest + max_dx + max_dy    
+    '''
     # Heuristique 3 correspond à la distance au point le plus proche += la distance entre le point le plus proche du point précédent sans les recompter
     food_list = foodGrid.asList()  
     if not food_list:
@@ -772,21 +772,10 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         # Retirer le point visité de la liste
         food_list.pop(index_closest)
         '''
+    # Heuristique 4 : On va faire essayer de comptabiliser les murs 
     food_list = foodGrid.asList()
-    if not food_list:
-        dist2closest, max_dx, max_dy = None, None, None
-        h4 = 0
-    elif(len(food_list) == 1):
-        h4 = util.manhattanDistance(position, food_list[0])
-    else:
-        # Distance et indice du point le plus proche
-        dist2closest, index_closest = min(
-            (util.manhattanDistance(position, food_pos), i)
-            for i, food_pos in enumerate(food_list)
-        )
-        closest_pos = food_list[index_closest]
-        
-    
-        h4 = dist2closest 
-    return h4
+    walls = problem.walls
+
+
+    return 0
 
