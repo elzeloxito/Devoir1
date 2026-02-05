@@ -730,7 +730,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     #heuristique2 Axel => 8204 nodes expanded
     # renvoie la distance au point de nourriture le plus proche 
     # + la distance en x et y entre le point le plus proche et le plus loin
-    
+    '''
     food_list = foodGrid.asList()
     if not food_list:
         dist2closest, max_dx, max_dy = None, None, None
@@ -744,8 +744,9 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         # Calcul des distances maximales en x et y par rapport au point le plus proche
         max_dx = max(abs(food_pos[0] - closest_pos[0]) for food_pos in food_list)
         max_dy = max(abs(food_pos[1] - closest_pos[1]) for food_pos in food_list)
-    
-        return dist2closest + max_dx + max_dy    
+        h2 = dist2closest + max_dx + max_dy
+        return h2    
+    '''
     '''
     # Heuristique 3 correspond à la distance au point le plus proche += la distance entre le point le plus proche du point précédent sans les recompter
     food_list = foodGrid.asList()  
@@ -774,8 +775,52 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         '''
     # Heuristique 4 : On va faire essayer de comptabiliser les murs 
     food_list = foodGrid.asList()
-    walls = problem.walls
+    if not food_list:
+        dist2closest, max_dx, max_dy = None, None, None
+    else:
+        # Distance et indice du point le plus proche
+        dist2closest, index_closest = min(
+            (util.manhattanDistance(position, food_pos), i)
+            for i, food_pos in enumerate(food_list)
+        )
+        closest_pos = food_list[index_closest]
 
+        # Calcul des distances maximales en x et y du point le plus loin par rapport au point le plus proche
+        dist2furthest, index_furthest = max(
+             (util.manhattanDistance(closest_pos, food_pos), i)
+            for i, food_pos in enumerate(food_list)
+        )
+        furthest_pos = food_list[index_furthest]
 
-    return 0
+        h4 = dist2closest + util.manhattanDistance(closest_pos, furthest_pos)# Vérification des murs horizontaux entre closest_pos et furthest_pos
+        for k in range(min(closest_pos[0], furthest_pos[0]), max(closest_pos[0], furthest_pos[0]) + 1):
+            if problem.walls[k][closest_pos[1]]:
+                # Vérifie si le mur bloque toute la colonne de y1 à y2
+                y_min = min(closest_pos[1], furthest_pos[1])
+                y_max = max(closest_pos[1], furthest_pos[1])
+                mur_bloque_colonne = True
+                for y in range(y_min, y_max + 1):
+                    if not problem.walls[k][y]:
+                        mur_bloque_colonne = False
+                        break
+                if mur_bloque_colonne:
+                    h4 += 3  # Détour de 3 mouvements
+                    return h4
+             #un mur suffit pour sortir de la boucle
+        # Vérification des murs verticaux entre closest_pos et furthest_pos
+        for m in range(min(closest_pos[1], furthest_pos[1]), max(closest_pos[1], furthest_pos[1]) + 1):
+            if problem.walls[closest_pos[0]][m]:
+                # Vérifie si le mur bloque toute la ligne de x1 à x2
+                x_min = min(closest_pos[0], furthest_pos[0])
+                x_max = max(closest_pos[0], furthest_pos[0])
+                mur_bloque_ligne = True
+                for x in range(x_min, x_max + 1):
+                    if not problem.walls[x][m]:
+                        mur_bloque_ligne = False
+                        break
+                if mur_bloque_ligne:
+                    h4 += 3  # Détour de 3 mouvements
+                    return h4 #un mur suffit pour sortir de la boucle
+     return h4        
+return 0
 
