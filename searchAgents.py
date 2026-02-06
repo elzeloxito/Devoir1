@@ -663,7 +663,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     """
     position, foodGrid = state
     position = list(position)
-
+    
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
@@ -773,10 +773,14 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         # Retirer le point visité de la liste
         food_list.pop(index_closest)
         '''
-    # Heuristique 4 : On va faire essayer de comptabiliser les murs 
+    '''
+    # Heuristique 4 : On va faire essayer de comptabiliser les murs => 7723 nodes expanded
     food_list = foodGrid.asList()
+    hh4 = [0] * foodGrid.width  # Initialisation pour les murs horizontaux
+    hv4 = [0] * foodGrid.height  # Initialisation pour les murs verticaux
+
     if not food_list:
-        dist2closest, max_dx, max_dy = None, None, None
+        return 0
     else:
         # Distance et indice du point le plus proche
         dist2closest, index_closest = min(
@@ -791,8 +795,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
             for i, food_pos in enumerate(food_list)
         )
         furthest_pos = food_list[index_furthest]
-
-        h4 = dist2closest + util.manhattanDistance(closest_pos, furthest_pos)# Vérification des murs horizontaux entre closest_pos et furthest_pos
+        
         for k in range(min(closest_pos[0], furthest_pos[0]), max(closest_pos[0], furthest_pos[0]) + 1):
             if problem.walls[k][closest_pos[1]]:
                 # Vérifie si le mur bloque toute la colonne de y1 à y2
@@ -804,23 +807,60 @@ def foodHeuristic(state, problem: FoodSearchProblem):
                         mur_bloque_colonne = False
                         break
                 if mur_bloque_colonne:
-                    h4 += 3  # Détour de 3 mouvements
-                    return h4
-             #un mur suffit pour sortir de la boucle
+                    hv4[k] += 2  # Détour de 2 mouvements
+                    Step2Bot = y_min
+                    Step2Top = foodGrid.height - y_max -1
+                    for y in range(1,max(Step2Bot,Step2Top)+1):
+                        if 0 <= y_min - y < foodGrid.height and 0 <= y_max + y < foodGrid.height:
+                            if problem.walls[k][y_min-y] and problem.walls[k][y_max+y]: 
+                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break #Il faut que le mur soit continu
+                        elif 0 <= y_min - y < foodGrid.height and y_max + y >= foodGrid.height:
+                           if problem.walls[k][y_min-y]: 
+                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break
+                        else:
+                            if  y_max + y < foodGrid.height and problem.walls[k][y_max + y]: 
+                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break
+                        
         # Vérification des murs verticaux entre closest_pos et furthest_pos
         for m in range(min(closest_pos[1], furthest_pos[1]), max(closest_pos[1], furthest_pos[1]) + 1):
             if problem.walls[closest_pos[0]][m]:
                 # Vérifie si le mur bloque toute la ligne de x1 à x2
                 x_min = min(closest_pos[0], furthest_pos[0])
                 x_max = max(closest_pos[0], furthest_pos[0])
-                mur_bloque_ligne = True
+                mur_bloque_row = True
                 for x in range(x_min, x_max + 1):
                     if not problem.walls[x][m]:
-                        mur_bloque_ligne = False
+                        mur_bloque_row = False
                         break
-                if mur_bloque_ligne:
-                    h4 += 3  # Détour de 3 mouvements
-                    return h4 #un mur suffit pour sortir de la boucle
-     return h4        
-return 0
+                if mur_bloque_row:
+                    hh4[m] += 2  # Détour de 2 mouvements
+                    Step2Bot = foodGrid.width - x_min
+                    Step2Top = foodGrid.width - x_max
+                    for x in range(1,max(Step2Bot,Step2Top)+1):
+                        if Step2Bot - x > 0 and Step2Top - x > 0:
+                            if problem.walls[x_min-x][m] and problem.walls[x_max-x][m]: 
+                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break #Il faut que le mur soit continu
+                        elif Step2Bot -x > 0 and Step2Top - x <=0:
+                            if problem.walls[x_min-x][m]: 
+                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break
+                        else:
+                            if problem.walls[x_max-x][m]: 
+                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                            else:
+                                break
+                        
+        return dist2closest + util.manhattanDistance(closest_pos, furthest_pos) + max(hh4) + max(hv4)
+    '''
 
+
+    return 0
