@@ -400,17 +400,23 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
     # l'heuristique dépend de l'état des coins visités
-    # notre idée c'est de retourner la distance manhattan du point le plus près + la distance en ligne droite entre les points restants 
-    # Apparamment s'apparente à une solution MTS
+    '''
+       IDEE: retourner la distance manhattan du point le plus près 
+       + la distance pour relier les cornes restants dans le meilleure des cas (en ligne droite) 
+       On fait une distinction selon le nombre de points restants à visiter,
+       ici c'est possible car seulement 4 coins et on connait les emplacements
+
+    # Apparamment s'apparente à une solution MTS lue dans la littérature
+    '''
     idx_faux = [i for i, val in enumerate(state[1]) if not val]
     pts_to_visit = sum(1 for val in state[1] if not val) #nombre de points à visiter et leur index
-
+    
 
     if pts_to_visit == 1: #distance de manhathan si un seul point à visiter
         return ( abs(state[0][0] - corners[idx_faux[0]][0]) + abs(state[0][1] - corners[idx_faux[0]][1])  )
     
     h = [0,0,0,0]
-    if state[1][0] == False:
+    if state[1][0] == False: 
         h[0] += ( abs(state[0][0] - corners[0][0]) + abs(state[0][1] - corners[0][1])  )
 
     if state[1][1] == False:
@@ -424,14 +430,14 @@ def cornersHeuristic(state, problem):
 
     if pts_to_visit == 2:
         dist_ptn2ptn = ( abs(corners[idx_faux[0]][0] - corners[idx_faux[1]][0]) + abs(corners[idx_faux[0]][1] - corners[idx_faux[1]][1])  )
-        return (min(h[idx_faux[0]],h[idx_faux[1]]) + dist_ptn2ptn)
+        return (min(h[idx_faux[0]],h[idx_faux[1]]) + dist_ptn2ptn) #la distance du point le plus proche + la distance entre les 2 points restants (largeur ou hauteur)
     if pts_to_visit == 3:
         dist_ptn2ptn = corners[3][0] + corners[3][1] -2 # largeur + hauteur
         return (min(h[idx_faux[0]],h[idx_faux[1]],h[idx_faux[2]]) + dist_ptn2ptn)
     if pts_to_visit == 4:
-        dist_ptn2ptn = corners[3][0] + corners[3][1] + min(corners[3][0],corners[3][1]) -3# largeur + hauteur + min(largeur,hauteur)
+        dist_ptn2ptn = corners[3][0] + corners[3][1] + min(corners[3][0],corners[3][1]) -3 # largeur + hauteur + min(largeur,hauteur)
         return (min(h) + dist_ptn2ptn)
-    # La correction de la largeur/longueur avec -2 ou -3 est pour eviter de compter 2 fois la position
+    # La correction de la largeur/longueur avec -3 est pour eviter de compter 2 fois la position
     #  de départ si elle est en (1,1) rend l'heuristique consistante sinon c'est pas le cas!
 
     return 0 # => in this one 774 nodes expanded
@@ -727,10 +733,12 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         min_distance = min([util.manhattanDistance(position, food_pos) for food_pos in foodGrid.asList()])
         h1 = min_distance + nb_Food -1
     '''  
+
+    '''
     #heuristique2 Axel => 8204 nodes expanded
     # renvoie la distance au point de nourriture le plus proche 
     # + la distance en x et y entre le point le plus proche et le plus loin
-    '''
+    h2=0
     food_list = foodGrid.asList()
     if not food_list:
         dist2closest, max_dx, max_dy = None, None, None
@@ -745,9 +753,9 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         max_dx = max(abs(food_pos[0] - closest_pos[0]) for food_pos in food_list)
         max_dy = max(abs(food_pos[1] - closest_pos[1]) for food_pos in food_list)
         h2 = dist2closest + max_dx + max_dy
-        return h2    
-    '''
-    '''
+    return h2    
+    
+    
     # Heuristique 3 correspond à la distance au point le plus proche += la distance entre le point le plus proche du point précédent sans les recompter
     food_list = foodGrid.asList()  
     if not food_list:
@@ -759,7 +767,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         dist2closest = float('inf')
         index_closest = -1
         for i, food_pos in enumerate(food_list):
-            dist = ((current_position[0]-food_pos[0])**2 + (current_position[1]-food_pos[1])**2cond)**0.5
+            dist = ((current_position[0]-food_pos[0])**2 + (current_position[1]-food_pos[1])**2)**0.5
             if dist < dist2closest:
                 dist2closest = dist
                 index_closest = i
@@ -772,13 +780,24 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         current_position = closest_pos
         # Retirer le point visité de la liste
         food_list.pop(index_closest)
-        '''
+    return h3 # on retire 1 pour ne pas compter la distance du point de départ au premier point de nourriture si jamais il y en a une sur la position de départ    
     '''
-    # Heuristique 4 : On va faire essayer de comptabiliser les murs => 7723 nodes expanded
-    food_list = foodGrid.asList()
-    hh4 = [0] * foodGrid.width  # Initialisation pour les murs horizontaux
-    hv4 = [0] * foodGrid.height  # Initialisation pour les murs verticaux
+    # Heuristique 4 : On va faire essayer de comptabiliser les murs => 6313 nodes expanded in 3.7s
+    '''
+        IDEE: On calcule la distance de manathann du point le plus proche de pacman 
+        + on ajoute la distance de manathan de ce point au point le plus loin
+        + S'il existe un mur horizontal entre ces 2 points qui bloque toute la ligne
+          on ajoute un détour de 4 mouvements, si celui-ci est prolongé on ajoute 
+          4 mouvements (en prenant compte des dimensions du plateau, et possibilités)
+        + on fait la même chose pour les murs verticaux
+        On prend le maximum des détours horizontaux et verticaux (sinon on surestime)
 
+        Défaut : pour une grille grande on fait bcp d'opérations dans le pire des cas, mais pacman ça reste OK
+    '''
+    food_list = foodGrid.asList()
+    hh4 = [0] * foodGrid.height  # Initialisation pour les murs horizontaux
+    hv4 = [0] * foodGrid.width  # Initialisation pour les murs verticaux
+    
     if not food_list:
         return 0
     else:
@@ -796,71 +815,79 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         )
         furthest_pos = food_list[index_furthest]
         
-        for k in range(min(closest_pos[0], furthest_pos[0]), max(closest_pos[0], furthest_pos[0]) + 1):
+        # Vérification des murs horizontaux entre closest_pos et furthest_pos
+        for k in range(min(closest_pos[0], furthest_pos[0])+1, max(closest_pos[0], furthest_pos[0])):
             if problem.walls[k][closest_pos[1]]:
                 # Vérifie si le mur bloque toute la colonne de y1 à y2
                 y_min = min(closest_pos[1], furthest_pos[1])
                 y_max = max(closest_pos[1], furthest_pos[1])
                 mur_bloque_colonne = True
-                for y in range(y_min, y_max + 1):
+
+                
+                for y in range(y_min, y_max):
                     if not problem.walls[k][y]:
                         mur_bloque_colonne = False
-                        break
+                        break #pas de blocage
+
+                #Le mur est-il plus grand ?
                 if mur_bloque_colonne:
-                    hv4[k] += 2  # Détour de 2 mouvements
-                    Step2Bot = y_min
-                    Step2Top = foodGrid.height - y_max -1
+                    hv4[k] += 4  # Détour de 4 mouvements (cf voir comment la grille est construite)
+                    Step2Top = min(foodGrid.height-1,y_max) 
+                    Step2Bot = max(1,y_min)             #on considère qu'il y a des murs sur les bords
+                    
                     for y in range(1,max(Step2Bot,Step2Top)+1):
-                        if 0 <= y_min - y < foodGrid.height and 0 <= y_max + y < foodGrid.height:
-                            if problem.walls[k][y_min-y] and problem.walls[k][y_max+y]: 
-                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                        if 0 <= y_min - y and y_max + y <= foodGrid.height-1: 
+                            if problem.walls[k][y_min-y] and problem.walls[k][y_max+y]: # top and bot
+                                hv4[k] += 4 #détour 
                             else:
                                 break #Il faut que le mur soit continu
-                        elif 0 <= y_min - y < foodGrid.height and y_max + y >= foodGrid.height:
-                           if problem.walls[k][y_min-y]: 
-                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                        elif 0 <= y_min - y and y_max + y >= foodGrid.height: # top only
+                            if problem.walls[k][y_min-y]: 
+                                hv4[k] += 4 #détour 
                             else:
                                 break
-                        else:
-                            if  y_max + y < foodGrid.height and problem.walls[k][y_max + y]: 
-                                hv4[k] += 2 #détour de 2 mouvements supplémentaires
+                        elif 0 < y_min - y and y_max + y <= foodGrid.height-1: # bot only
+                            if problem.walls[k][y_max + y]: 
+                                hv4[k] += 4 #détour 
                             else:
                                 break
                         
         # Vérification des murs verticaux entre closest_pos et furthest_pos
-        for m in range(min(closest_pos[1], furthest_pos[1]), max(closest_pos[1], furthest_pos[1]) + 1):
+        for m in range(min(closest_pos[1], furthest_pos[1])+1, max(closest_pos[1], furthest_pos[1])):
             if problem.walls[closest_pos[0]][m]:
+
                 # Vérifie si le mur bloque toute la ligne de x1 à x2
                 x_min = min(closest_pos[0], furthest_pos[0])
                 x_max = max(closest_pos[0], furthest_pos[0])
                 mur_bloque_row = True
-                for x in range(x_min, x_max + 1):
+
+                for x in range(x_min, x_max): 
                     if not problem.walls[x][m]:
                         mur_bloque_row = False
-                        break
+                        break #pas de blocage
+
                 if mur_bloque_row:
-                    hh4[m] += 2  # Détour de 2 mouvements
-                    Step2Bot = foodGrid.width - x_min
-                    Step2Top = foodGrid.width - x_max
-                    for x in range(1,max(Step2Bot,Step2Top)+1):
-                        if Step2Bot - x > 0 and Step2Top - x > 0:
-                            if problem.walls[x_min-x][m] and problem.walls[x_max-x][m]: 
-                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                    hh4[m] += 4  # Détour de 2 mouvements
+                    
+                    Step2Left = max(1,x_min) 
+                    Step2Right = min(foodGrid.width-1,x_max)  #on considère qu'il y a des murs sur les bords
+                    for x in range(1,max(Step2Right,Step2Left)+1):
+                        if 0 <= x_min - x and x_max + x <= foodGrid.width-1: # left and right
+                            if problem.walls[x_min-x][m] and problem.walls[x_max+x][m]: 
+                                hv4[m] += 4 #détour de 4 mouvements supplémentaires
                             else:
                                 break #Il faut que le mur soit continu
-                        elif Step2Bot -x > 0 and Step2Top - x <=0:
+                        elif 0 <= x_min - x and x_max + x >= foodGrid.width: # left only
                             if problem.walls[x_min-x][m]: 
-                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                                hv4[m] += 4 
                             else:
                                 break
-                        else:
-                            if problem.walls[x_max-x][m]: 
-                                hh4[m] += 2 #détour de 2 mouvements supplémentaires
+                        elif 0 < x_min - x and x_max + x <= foodGrid.width-1: # right only
+                            if problem.walls[x_max+x][m]: 
+                                hv4[m] += 4 
                             else:
                                 break
-                        
-        return dist2closest + util.manhattanDistance(closest_pos, furthest_pos) + max(hh4) + max(hv4)
-    '''
-
-
-    return 0
+                       
+    return dist2closest + util.manhattanDistance(closest_pos, furthest_pos) + max(hh4) + max(hv4)
+   
+    

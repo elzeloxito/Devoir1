@@ -221,10 +221,11 @@ def aStarSearch(problem:SearchProblem, heuristic=nullHeuristic)->List[Direction]
     from util import PriorityQueue
     
     initial_state = problem.getStartState()
-    fringe = PriorityQueue()
+    fringe = PriorityQueue() #initialisation de la fringe
     fringe.push(initial_state, 0+heuristic(initial_state,problem))
     infos = {initial_state: [[], "", 0]} #pour le moment pas de cout associe
-    final_state = None
+    final_state = None #initialisation etat final ?
+
     while not fringe.isEmpty():
         state = fringe.pop()
         cost = infos[state][2] #ici le cout reste le même
@@ -235,14 +236,14 @@ def aStarSearch(problem:SearchProblem, heuristic=nullHeuristic)->List[Direction]
             for successor_state in problem.getSuccessors(state):
                 if successor_state[0] not in infos:
                     fringe.update(successor_state[0], successor_state[2] + cost + heuristic(successor_state[0],problem)) #on rajoute l'heuristique
-                    infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
+                    infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost]) #mais l'heuristique n'est pas dans le cout lie à l'etat selectionne
                 elif  successor_state[2] + cost  < infos[successor_state[0]][2]:
                     fringe.update(successor_state[0], successor_state[2] + cost+ heuristic(successor_state[0],problem)) 
                     infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
     
+    # On retourne la solution
     if final_state == None:
         return []
-
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
