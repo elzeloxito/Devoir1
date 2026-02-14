@@ -12,6 +12,10 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+#######              EQUIPE 84                      ######
+####### Axel Oddoux - Matricule : 2486891           ######
+####### Theo Piliszczuk–Wild - Matricule : 2486799  ######
+
 """
 This file contains all of the agents that can be selected to control Pacman.  To
 select an agent, use the '-p' option when running pacman.py.  Arguments can be

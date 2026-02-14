@@ -12,6 +12,11 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+#######              EQUIPE 84                      ######
+####### Axel Oddoux - Matricule : 2486891           ######
+####### Theo Piliszczuk–Wild - Matricule : 2486799  ######
+
+
 """
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
