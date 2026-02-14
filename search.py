@@ -103,28 +103,31 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
 
     initial_state = problem.getStartState()
     fringe = Stack()
-    fringe.push([initial_state,[],''])
+    fringe.push([initial_state,None, None]) # La fringe stocke : position de l'état, position de son parent, direction parent -> état
     visited_states=dict()
     final_state = None
     while not fringe.isEmpty(): 
-        state = fringe.pop()
-        visited_states[state[0]]=(state[1],state[2])
-        if problem.isGoalState(state[0]):
-            final_state = state[0]
-            break 
-        else:
-            for successor_state in problem.getSuccessors(state[0]):
-                if successor_state[0] not in visited_states:
-                    fringe.push([successor_state[0],state[0],successor_state[1]])
+        current_state, parent, direction = fringe.pop()
+        if current_state not in visited_states:
+            visited_states[current_state]=(parent,direction) # On stocke le parent de l'état et la direction "parent -> état" => pour reconstruire le chemin à la fin
+            if problem.isGoalState(current_state): 
+                final_state = current_state # Stockage état final pour la reconstruction 
+                break 
+            else:
+                # On explore les successeurs et on les ajoute à la fringe si pas encore visités 
+                for successor_state in problem.getSuccessors(current_state): 
+                    if successor_state[0] not in visited_states:  
+                        fringe.push((successor_state[0],current_state,successor_state[1]))
 
-    if final_state == None:
+    if final_state == None: 
         return[]
 
+    # On reconstruit le chemin de l'état initial à l'état final grâce aux états visités 
     directions = []
-    path_state = final_state
-    while path_state != initial_state:
-        directions.insert(0,visited_states[path_state][1])
-        path_state = visited_states[path_state][0]
+    path_state = final_state 
+    while path_state != initial_state: 
+        directions.insert(0,visited_states[path_state][1]) 
+        path_state = visited_states[path_state][0] 
     return directions
     util.raiseNotDefined()
 
@@ -138,28 +141,31 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
 
     initial_state = problem.getStartState()
     fringe = Queue()
-    fringe.push([initial_state,None,''])
-    visited_states={initial_state: [[],""]}
+    fringe.push([initial_state,None, None]) # La fringe stocke : position de l'état, position de son parent, direction parent -> état
+    visited_states=dict()
     final_state = None
     while not fringe.isEmpty(): 
-        state = fringe.pop()
-        if problem.isGoalState(state[0]):
-            final_state = state[0]
-            break 
-        else:
-            for successor_state in problem.getSuccessors(state[0]):
-                if successor_state[0] not in visited_states:
-                    fringe.push([successor_state[0],state[0],successor_state[1]])
-                    visited_states[successor_state[0]]=(state[0],successor_state[1])
+        current_state, parent, direction = fringe.pop()
+        if current_state not in visited_states:
+            visited_states[current_state]=(parent,direction) # On stocke le parent de l'état et la direction "parent -> état" => pour reconstruire le chemin à la fin
+            if problem.isGoalState(current_state): 
+                final_state = current_state # Stockage état final pour la reconstruction 
+                break 
+            else:
+                # On explore les successeurs et on les ajoute à la fringe si pas encore visités 
+                for successor_state in problem.getSuccessors(current_state): 
+                    if successor_state[0] not in visited_states:  
+                        fringe.push((successor_state[0],current_state,successor_state[1]))
 
-    if final_state == None:
-        return []
+    if final_state == None: 
+        return[]
 
+    # On reconstruit le chemin de l'état initial à l'état final grâce aux états visités 
     directions = []
-    path_state = final_state
-    while path_state != problem.getStartState():
-        directions.insert(0,visited_states[path_state][1])
-        path_state = visited_states[path_state][0]
+    path_state = final_state 
+    while path_state != initial_state: 
+        directions.insert(0,visited_states[path_state][1]) 
+        path_state = visited_states[path_state][0] 
     return directions
     util.raiseNotDefined()
 
@@ -170,13 +176,16 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
-    # A commenter
     from util import PriorityQueue
 
     initial_state = problem.getStartState()
     fringe = PriorityQueue()
     fringe.push(initial_state, 0)
-    states_infos = {initial_state: [[], "", 0]}
+
+    # Stocke états parcourus et leurs infos : parent, direction, coût
+    # Stockage des infos (parent, direction, coût) impossible dans une variable qu'on passe à la fringe pour .update car deux memes positions avec des parents différents seraient
+    # toujours ajoutées même si la seconde à un coût plus important => on doit stocker les informations ailleurs -> dans states_infos pour la reconstruction 
+    states_infos = {initial_state: [None, None, 0]}
     final_state = None
     while not fringe.isEmpty():
         state = fringe.pop()
@@ -184,18 +193,23 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
         if problem.isGoalState(state):
             final_state = state
             break 
-        else:
-            for successor_state in problem.getSuccessors(state):
-                if successor_state[0] not in states_infos:
-                    fringe.update(successor_state[0], successor_state[2] + cost) 
-                    states_infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
-                elif  successor_state[2] + cost < states_infos[successor_state[0]][2]:
-                    fringe.update(successor_state[0], successor_state[2] + cost) 
-                    states_infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
+        for successor_state in problem.getSuccessors(state):
+            # Ajout ou mise à jour des infos d'un état
+            # Fait l'équivalent de .update mais pour states_infos
+            # Si état jamais parcouru alors ajout de ses infos
+            if successor_state[0] not in states_infos:
+                fringe.update(successor_state[0], successor_state[2] + cost) 
+                states_infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
+
+            # Si état déjà parcouru mais que le coût est meilleur -> on met à jour ses infos
+            elif  successor_state[2] + cost < states_infos[successor_state[0]][2]:
+                fringe.update(successor_state[0], successor_state[2] + cost) 
+                states_infos[successor_state[0]] = ([state, successor_state[1], successor_state[2] + cost])
     
     if final_state == None:
         return []
 
+    # Reconstruction du chemin depuis l'état final grâce aux infos stockées
     directions = []
     path_state = final_state
     while path_state != problem.getStartState():
@@ -204,7 +218,6 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     return directions
 
     util.raiseNotDefined()
-
 
 def nullHeuristic(state:GameState, problem:SearchProblem=None)->List[Direction]:
     """

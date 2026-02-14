@@ -306,6 +306,8 @@ class CornersProblem(search.SearchProblem):
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
 
+        # L'état initial n'est plus simplement une position sur la map mais on ajoute aussi l'état des nourritures aux coins 
+        # False => pas encore mangée 
         corner_state = [False, False, False, False]
         for i,corner in self.corners:
             if self.startingPosition == corner:
@@ -322,7 +324,8 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
-
+        
+        # L'état final ne dépend plus de la position de Pacman mais de l'état des nourritures
         for corner in self.corners:
             if state[1] == (True, True, True, True): #quelque soit la position, si les etats des corners sont tous True alors c'est un etat final
                 return True
@@ -353,6 +356,8 @@ class CornersProblem(search.SearchProblem):
             '''
                 INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
             '''
+
+            # Vérifie en plus que l'état successeur est dans un coin pour update l'état des nourritures
             x,y = state[0]
             corners_state = list(state[1])
             dx, dy = Actions.directionToVector(action)
@@ -361,8 +366,8 @@ class CornersProblem(search.SearchProblem):
                 nextState = (nextx, nexty)
                 for i,corner in enumerate(self.corners):
                     if corner == nextState:
-                        corners_state[i] = True #change l'etat des corners si jamais le successeur est un corner
-                successors.append(((nextState,tuple(corners_state)), action, 1)) #tout en tuple pour le dictionnaire 
+                        corners_state[i] = True 
+                successors.append(((nextState,tuple(corners_state)), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
